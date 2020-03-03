@@ -1,0 +1,25 @@
+{
+  "username": "USERNAME",
+  "gold": 0,
+  "lastUpdateTime": TIMESTAMP,
+  "equipment": {
+    "shovel": {
+      "id": "shovel",
+      "name": "Shovel",
+      "numberOwned": 0,
+      "cost": 10
+    },
+    "excavator": {
+      "id": "excavator",
+      "name": "Excavator",
+      "numberOwned": 0,
+      "cost": 200
+    },
+    "mine": {
+      "id": "mine",
+      "name": "Gold Mine",
+      "numberOwned": 0,
+      "cost": 1000
+    }
+  }
+}
