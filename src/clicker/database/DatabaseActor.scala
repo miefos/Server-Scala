@@ -10,9 +10,12 @@ class DatabaseActor(dbType: String) extends Actor {
 
   val database: Database = dbType match {
     case "mySQL" => new MySQLDatabase()
-    case "test" => ???
+    case "test" => null
   }
 
-  override def receive: Receive = ???
+  override def receive: Receive = {
+    case "mySQL" => new MySQLDatabase()
+    case "test" => null
+  }
 
 }

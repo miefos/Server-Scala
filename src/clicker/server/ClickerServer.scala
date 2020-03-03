@@ -35,7 +35,7 @@ object ClickerServer {
     import actorSystem.dispatcher
     import scala.concurrent.duration._
 
-    val db = actorSystem.actorOf(Props(classOf[DatabaseActor], "mySQL"))
+    val db = actorSystem.actorOf(Props(classOf[DatabaseActor], "test"))
     val server = actorSystem.actorOf(Props(classOf[ClickerServer], db, ""))
 
     actorSystem.scheduler.schedule(0.milliseconds, 100.milliseconds, server, UpdateGames)
