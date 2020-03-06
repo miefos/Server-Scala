@@ -31,8 +31,8 @@ class Item (val id: String,
   def getPrice(acquired: Int): Double = {
     // Compute
     val basePrice: Double = this.basePrice
-    val percentage: Double = this.increasePricePerItem / 100
-    val compoundPercentage: Double = Math.pow(1 + percentage, acquired)
+    val percentage: Double = this.increasePricePerItem
+    val compoundPercentage: Double = Math.pow(percentage, acquired)
     // Round at 10 decimal digits and return
     RoundingNumbers.roundAt(10)(basePrice * compoundPercentage)
   }
@@ -40,11 +40,12 @@ class Item (val id: String,
 
 // Define all available items
 object Equipment {
-  val available: Map[String, Item] =
+  var currency: String = "Gold"
+  var available: Map[String, Item] =
         Map(
-          "shovel" -> new Item("shovel", "Shovel", 10, 5, 1, 0),
-          "excavator" -> new Item("excavator", "Excavator", 200, 10, 5, 10),
-          "mine" -> new Item("mine", "Mine", 1000, 10, 0, 100)
+          "shovel" -> new Item("shovel", "Shovel", 10, 1.05, 1, 0),
+          "excavator" -> new Item("excavator", "Excavator", 200, 1.10, 5, 10),
+          "mine" -> new Item("mine", "Mine", 1000, 1.10, 0, 100)
         )
 
   val availableEquipmentJson: List[JsValue] = List()

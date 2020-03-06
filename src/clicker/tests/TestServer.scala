@@ -36,19 +36,29 @@ class TestServer extends TestKit(ActorSystem("TestServer"))
 
 
       val client = system.actorOf(Props(classOf[SocketClient], this.testActor))
-      expectNoMessage(1000.millis)
+      expectNoMessage(2500.millis)
 
       client ! ClickGold
       client ! ClickGold
       client ! ClickGold
-      expectNoMessage(1000.millis)
+      expectNoMessage(100.millis)
 
       server ! SaveGames
       expectNoMessage(100.millis)
 
       server ! UpdateGames
-      assert(expectMsgType[Result](1000.millis).passed)
+      assert(expectMsgType[Result](4000.millis).passed)
 
+//      client ! ClickGold
+//      client ! ClickGold
+//      client ! ClickGold
+//      expectNoMessage(100.millis)
+//
+//      server ! SaveGames
+//      expectNoMessage(100.millis)
+
+//      server ! UpdateGames
+//      assert(expectMsgType[Result](4000.millis).passed)
     }
   }
 }

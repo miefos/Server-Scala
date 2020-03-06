@@ -31,11 +31,19 @@ class CheckGameState(actor: ActorRef) extends Emitter.Listener {
   override def call(objects: Object*): Unit = {
     val jsonGameState = objects.apply(0).toString
     val message: JsValue = Json.parse(jsonGameState)
+    var gold: Double = 0
+
+    println(message)
+    gold = (message \ "gold").as[Double]
 
     var passed = true
 
     // Add checks for the game state. Set passed to false if any checks fail
     // Expect gold to be 3.0 in the provided example
+    if (gold != 3) {
+      passed = false
+    }
+
 
     actor ! Result(passed)
   }

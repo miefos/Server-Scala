@@ -3,13 +3,17 @@ package clicker.model
 import akka.actor.ActorRef
 import play.api.libs.json._
 
-class Game (username: String, database: ActorRef){
+class Game (var username: String, database: ActorRef){
 
   var lastUpdateTime: Long = System.nanoTime()
 
   var current_gold: Double = 0
   val shop: Map[String, Item] = Equipment.available
   var inventory: Map[String, Int] = Map()
+  var leftTime: Double = 0
+  var GPS: Double = 0 // Gold per second
+  var GPC: Double = 1 // Gold per click
+
 
   // Uses method getInventory
   def getStringGameState: String = {
@@ -49,32 +53,84 @@ class Game (username: String, database: ActorRef){
     Json.toJson(inv)
   }
 
-  def increaseClickGold(): Unit = {
-    var updateGold: Double = 1
-    for (item <- inventory) {
-      val itemID = item._1
-      val numOfAcquired = item._2
-      val goldPerClick = shop(itemID).goldPerClick
-      updateGold += goldPerClick*numOfAcquired
+  // Updates when data got from DB (existing user logged in)
+  def updateFromDB (data: String): Unit = {
+    println("Updating data from DB")
+    val parsed: JsValue = Json.parse(data)
+    username = (parsed \ "username").as[String]
+    current_gold = (parsed \ "gold").as[Double]
+    lastUpdateTime = (parsed \ "lastUpdateTime").as[Long]
+    val equipment: Map[String, JsValue] = (parsed \ "equipment").as[Map[String, JsValue]]
+    for (itemMap <- equipment) {
+      val item: JsValue = itemMap._2
+      val itemID: String = (item \ "id").as[String]
+      val numberOwned: Int = (item \ "numberOwned").as[Int]
+      inventory += (itemID -> numberOwned)
     }
-    current_gold += updateGold
-    println("Current gold updated by " + updateGold + " (increased due to a click)")
-    println("Current gold now is " + current_gold)
+    println("New inventory is " + inventory)
+    println("New current gold is " + current_gold)
+  }
+
+//  def increaseClickGold(): Unit = {
+//    var updateGold: Double = 1
+//    for (item <- inventory) {
+//      val itemID = item._1
+//      val numOfAcquired = item._2
+//      val goldPerClick = shop(itemID).goldPerClick
+//      updateGold += goldPerClick*numOfAcquired
+//    }
+//    current_gold += updateGold
+////    println("Current gold updated by " + updateGold + " (increased due to a click)")
+////    println("Current gold now is " + current_gold)
+//  }
+
+  def increaseClickGold(): Unit = {
+    current_gold += GPC
   }
 
   def increaseIdleGold(): Unit = {
-    var updateGold: Double = 0
+    val numOfSeconds: Double = calcUpdateTime()
+    current_gold += GPS * numOfSeconds
+  }
 
-    for (item <- inventory) {
-      val itemID = item._1
-      val numOfAcquired = item._2
-      val goldPerSecond = shop(itemID).idleGold
-      updateGold += goldPerSecond * numOfAcquired
+//  def increaseIdleGold(): Unit = {
+//    val numOfSeconds: Double = calcUpdateTime()
+//    var updateGold: Double = 0
+//
+//    for (item <- inventory) {
+//      val itemID = item._1
+//      val numOfAcquired = item._2
+//      var goldPerSecond: Int = 0
+//      if (shop.contains(itemID)) {
+//        goldPerSecond = shop(itemID).idleGold
+//      }
+//      updateGold += goldPerSecond * numOfAcquired * numOfSeconds
+//    }
+//
+////    println("...................." + numOfSeconds + " Passed......")
+//
+//    current_gold += updateGold
+////    println("Current gold updated by " + updateGold + " (increased due to idling)")
+////    println("Current gold now is " + current_gold)
+//  }
+
+  def calcUpdateTime(): Double = {
+    val updateNanoSeconds: Long = System.nanoTime() - lastUpdateTime
+    lastUpdateTime = System.nanoTime()
+    val DoubleSeconds: Double = (updateNanoSeconds.toDouble / 1000000000)
+    var IntegerSeconds: Int = DoubleSeconds.toInt
+    val partOfSecondsLeft: Double = DoubleSeconds - IntegerSeconds.toDouble
+//    println("Double seconds, integer seconds, partofSecondsLeft = " + DoubleSeconds +  ", " + IntegerSeconds + ", " + partOfSecondsLeft)
+    leftTime += partOfSecondsLeft
+    if (leftTime >= 1) {
+      val leftTimeInt: Int = leftTime.toInt
+      leftTime = leftTime - leftTimeInt
+      IntegerSeconds += leftTimeInt
+//      println(IntegerSeconds + ", " + leftTime)
     }
-
-    current_gold += updateGold
-    println("Current gold updated by " + updateGold + " (increased due to idling)")
-    println("Current gold now is " + current_gold)
+//    println("Seconds to update is " + IntegerSeconds)
+//    println("Left time is " + leftTime)
+    IntegerSeconds
   }
 
   def buyEquipment (id: String): Unit = {
@@ -89,7 +145,11 @@ class Game (username: String, database: ActorRef){
 
       // Check if gold is enough and buy
       if (current_gold >= price) {
+        val gpc: Int = shop(id).goldPerClick
+        val gps: Int = shop(id).idleGold
         current_gold -= price
+        GPS += gps
+        GPC += gpc
         if (inventory.contains(id)) {
           inventory += (id -> (inventory(id) + 1))
         } else {

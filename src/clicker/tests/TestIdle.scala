@@ -29,7 +29,7 @@ class TestIdle extends TestKit(ActorSystem("TestIdle"))
       var gold: Double = 0
       var equipm: Int = 0
 
-      // Add 50 golds
+      // Add gold
       for (i <- 1 to 200) {
         gameActor ! ClickGold
       }
@@ -47,12 +47,13 @@ class TestIdle extends TestKit(ActorSystem("TestIdle"))
       gameActor ! BuyEquipment("excavator")
 
       // Update
+      expectNoMessage(1000.millis)
       gameActor ! Update
       gs = expectMsgType[GameState](1000.millis)
       gold = (Json.parse(gs.gameState) \ "gold").as[Double]
       equipm = (Json.parse(gs.gameState) \ "equipment" \ "excavator" \ "numberOwned").as[Int]
 
-      assert(gold == 10)
+      assert((gold >= 0) && (gold <= 20))
       assert(equipm == 1)
 
       // Add 1002 golds
@@ -60,47 +61,24 @@ class TestIdle extends TestKit(ActorSystem("TestIdle"))
         gameActor ! ClickGold
       }
 
-      // Update
-      gameActor ! Update // + 10 from excavator
+      // Update ~1002+10~1012
+      expectNoMessage(1000.millis)
+      gameActor ! Update // + 10 from excavator // Gold ~1022
       gs = expectMsgType[GameState](1000.millis)
       gold = (Json.parse(gs.gameState) \ "gold").as[Double]
 
-      assert(gold == 1022)
+      assert(gold >= 1000 && gold <= 1050) // Gold ~1022
 
       // Buy Excavator
-      gameActor ! BuyEquipment("mine") // - 1000
+      gameActor ! BuyEquipment("mine") // - 1000 // Gold ~22
 
-      // Update // gold 22
-      gameActor ! Update // +10 +100
+      // Update // gold ~22
+      expectNoMessage(1000.millis) // +10 +100
+      gameActor ! Update  // ~22 + 110 ~132
       gs = expectMsgType[GameState](1000.millis)
       gold = (Json.parse(gs.gameState) \ "gold").as[Double]
 
-      assert(gold == 132)
-
-      // Add 1002 golds
-      for (i <- 1 to 167) {
-        gameActor ! ClickGold
-      }
-
-      // Update // gold 1134
-      gameActor ! Update // +10 +100
-      gs = expectMsgType[GameState](1000.millis)
-      gold = (Json.parse(gs.gameState) \ "gold").as[Double]
-
-      assert(gold == 1244)
-
-      // Buy Excavator
-      gameActor ! BuyEquipment("mine") // - 1100
-
-      // Update // gold 144
-      gameActor ! Update // +10 +200
-      gs = expectMsgType[GameState](1000.millis)
-      gold = (Json.parse(gs.gameState) \ "gold").as[Double]
-      equipm = (Json.parse(gs.gameState) \ "equipment" \ "mine" \ "numberOwned").as[Int]
-
-      assert(gold == 354)
-      assert(equipm == 2)
-
+      assert(gold >= 22 && gold <= 250)
 
     }
   }

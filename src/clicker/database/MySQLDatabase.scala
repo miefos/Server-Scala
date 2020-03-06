@@ -6,9 +6,9 @@ import scala.io.Source
 
 class MySQLDatabase extends Database {
 
-  val url = "jdbc:mysql://localhost/mysql?serverTimezone=UTC"
+  val url = "jdbc:mysql://localhost:3306/clickerdatabase"
   val username = "root"
-  val password = "your_password"
+  val password = "root"
   var connection: Connection = DriverManager.getConnection(url, username, password)
 
   setupTable()
@@ -43,6 +43,7 @@ class MySQLDatabase extends Database {
     statement.setString(1, gameState)
     statement.setString(2, username)
     statement.execute()
+//    println("Game State saved (3/3)...")
   }
 
 
