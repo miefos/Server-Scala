@@ -3,12 +3,10 @@ let registered = false;
 
 
 socket.on('gameState', function (data) {
-    // console.log("Updating game... with message: " + data);
     update(data);
 });
 
 socket.on('init', function (data) {
-    // console.log("Initializing game... with message: " + data);
     initGame(data);
 });
 function initGame(data) {

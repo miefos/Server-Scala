@@ -43,7 +43,6 @@ class MySQLDatabase extends Database {
     statement.setString(1, gameState)
     statement.setString(2, username)
     statement.execute()
-//    println("Game State saved (3/3)...")
   }
 
 

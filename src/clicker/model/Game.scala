@@ -71,19 +71,6 @@ class Game (var username: String, database: ActorRef){
     println("New current gold is " + current_gold)
   }
 
-//  def increaseClickGold(): Unit = {
-//    var updateGold: Double = 1
-//    for (item <- inventory) {
-//      val itemID = item._1
-//      val numOfAcquired = item._2
-//      val goldPerClick = shop(itemID).goldPerClick
-//      updateGold += goldPerClick*numOfAcquired
-//    }
-//    current_gold += updateGold
-////    println("Current gold updated by " + updateGold + " (increased due to a click)")
-////    println("Current gold now is " + current_gold)
-//  }
-
   def increaseClickGold(): Unit = {
     current_gold += GPC
   }
@@ -93,43 +80,18 @@ class Game (var username: String, database: ActorRef){
     current_gold += GPS * numOfSeconds
   }
 
-//  def increaseIdleGold(): Unit = {
-//    val numOfSeconds: Double = calcUpdateTime()
-//    var updateGold: Double = 0
-//
-//    for (item <- inventory) {
-//      val itemID = item._1
-//      val numOfAcquired = item._2
-//      var goldPerSecond: Int = 0
-//      if (shop.contains(itemID)) {
-//        goldPerSecond = shop(itemID).idleGold
-//      }
-//      updateGold += goldPerSecond * numOfAcquired * numOfSeconds
-//    }
-//
-////    println("...................." + numOfSeconds + " Passed......")
-//
-//    current_gold += updateGold
-////    println("Current gold updated by " + updateGold + " (increased due to idling)")
-////    println("Current gold now is " + current_gold)
-//  }
-
   def calcUpdateTime(): Double = {
     val updateNanoSeconds: Long = System.nanoTime() - lastUpdateTime
     lastUpdateTime = System.nanoTime()
     val DoubleSeconds: Double = (updateNanoSeconds.toDouble / 1000000000)
     var IntegerSeconds: Int = DoubleSeconds.toInt
     val partOfSecondsLeft: Double = DoubleSeconds - IntegerSeconds.toDouble
-//    println("Double seconds, integer seconds, partofSecondsLeft = " + DoubleSeconds +  ", " + IntegerSeconds + ", " + partOfSecondsLeft)
     leftTime += partOfSecondsLeft
     if (leftTime >= 1) {
       val leftTimeInt: Int = leftTime.toInt
       leftTime = leftTime - leftTimeInt
       IntegerSeconds += leftTimeInt
-//      println(IntegerSeconds + ", " + leftTime)
     }
-//    println("Seconds to update is " + IntegerSeconds)
-//    println("Left time is " + leftTime)
     IntegerSeconds
   }
 

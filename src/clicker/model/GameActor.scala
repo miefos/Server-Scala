@@ -10,7 +10,6 @@ class GameActor(username: String, database: ActorRef) extends Actor {
 
   override def receive: Receive = {
     case ClickGold =>
-//      println("Gold clicked")
       game.increaseClickGold()
     case be: BuyEquipment =>
       game.buyEquipment(be.equipmentId)
@@ -18,9 +17,7 @@ class GameActor(username: String, database: ActorRef) extends Actor {
       game.increaseIdleGold()
       sender() ! GameState(game.getStringGameState)
     case Save =>
-//      println("Game State saved (1/3)...")
       database ! SaveGame(username, game.getStringGameState)
-    // This case happens if username already existed in DB
     case data: GameState =>
       game.updateFromDB(data.gameState)
   }
