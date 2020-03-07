@@ -79,7 +79,6 @@ class TestIdle extends TestKit(ActorSystem("TestIdle"))
       gold = (Json.parse(gs.gameState) \ "gold").as[Double]
 
       assert(gold >= 22 && gold <= 250)
-
     }
   }
 

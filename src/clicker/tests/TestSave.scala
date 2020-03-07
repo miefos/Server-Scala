@@ -1,12 +1,14 @@
 package clicker.tests
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorSystem, PoisonPill, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import clicker.GameState
+import clicker.{ClickGold, GameState, Save}
 import clicker.database.DatabaseActor
 import clicker.model.GameActor
 import org.scalatest._
+import play.api.libs.json.Json
 
+import scala.collection.script.Update
 import scala.concurrent.duration._
 
 class TestSave extends TestKit(ActorSystem("TestSave"))
@@ -22,17 +24,26 @@ class TestSave extends TestKit(ActorSystem("TestSave"))
 
   "A Clicker Game" must {
     "save and load properly" in {
-        expectNoMessage(50.millis)
+//    expectNoMessage(50.millis)
 
-        val actorSystem = ActorSystem()
-        var gs: GameState = GameState("")
+      val database = system.actorOf(Props(classOf[DatabaseActor], "test"))
+      val gameActor = system.actorOf(Props(classOf[GameActor], "username", database))
+      var gs: GameState = GameState("")
+      var gold: Double = 0
 
-        val db = actorSystem.actorOf(Props(classOf[DatabaseActor], "test"))
-        val player1 = actorSystem.actorOf(Props(classOf[GameActor], "user1", db))
-        val player2 = actorSystem.actorOf(Props(classOf[GameActor], "user2", db))
-        val player3 = actorSystem.actorOf(Props(classOf[GameActor], "user3", db))
+      // Add gold
+      for (i <- 1 to 200) {
+        gameActor ! ClickGold
+      }
 
-        val player3_2 = actorSystem.actorOf(Props(classOf[GameActor], "user3", db))
+      expectNoMessage(50.millis)
+
+      // Update
+      gameActor ! Update
+      gs = expectMsgType[GameState](1000.millis)
+      gold = (Json.parse(gs.gameState) \ "gold").as[Double]
+
+      assert(gold == 200)
       }
   }
 }
