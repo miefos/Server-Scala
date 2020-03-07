@@ -29,7 +29,7 @@ class testDatabase extends Database {
     if (playerExists(username)) {
       allPlayers += (username -> gameState)
     } else {
-      println("Player does not exist (saving game state in testDatabase)")
+      println("Player does not exist (saving game state in testDatabase failed)")
     }
   }
 

@@ -22,7 +22,7 @@ class TestIdle extends TestKit(ActorSystem("TestIdle"))
 
 
   "A Clicker Game" must {
-    "earn the correct idle income" in {
+    "earn the correct idle income -- excavator" in {
       val database = system.actorOf(Props(classOf[DatabaseActor], "test"))
       val gameActor = system.actorOf(Props(classOf[GameActor], "username", database))
       var gs: GameState = GameState("")
@@ -30,55 +30,64 @@ class TestIdle extends TestKit(ActorSystem("TestIdle"))
       var equipm: Int = 0
 
       // Add gold
-      for (i <- 1 to 200) {
+      for (i <- 1 to 420) {
         gameActor ! ClickGold
       }
 
       expectNoMessage(50.millis)
 
-      // Update
-      gameActor ! Update
-      gs = expectMsgType[GameState](1000.millis)
-      gold = (Json.parse(gs.gameState) \ "gold").as[Double]
-
-      assert(gold == 200)
-
       // Buy Excavator
+      gameActor ! BuyEquipment("excavator")
       gameActor ! BuyEquipment("excavator")
 
       // Update
-      expectNoMessage(1000.millis)
+      expectNoMessage(1200.millis)
       gameActor ! Update
       gs = expectMsgType[GameState](1000.millis)
       gold = (Json.parse(gs.gameState) \ "gold").as[Double]
       equipm = (Json.parse(gs.gameState) \ "equipment" \ "excavator" \ "numberOwned").as[Int]
 
-      assert((gold >= 0) && (gold <= 20))
-      assert(equipm == 1)
+      assert(gold == 20)
+      assert(equipm == 2)
 
-      // Add 1002 golds
-      for (i <- 1 to 167) {
+    }
+    "earn the correct idle income -- mine" in {
+      val database = system.actorOf(Props(classOf[DatabaseActor], "test"))
+      val gameActor = system.actorOf(Props(classOf[GameActor], "username", database))
+      var gs: GameState = GameState("")
+      var gold: Double = 0
+      var equipm: Int = 0
+
+      // Add gold
+      for (i <- 1 to 10) {
+        gameActor ! ClickGold
+      }
+      gameActor ! BuyEquipment("shovel") // Left gold is 0 // GPC = 2 // GPS = 0
+      for (i <- 1 to 6) {
+        gameActor ! ClickGold
+      }
+      gameActor ! BuyEquipment("shovel") // Left gold is 0.5 // GPC = 3 // GPS = 0
+      for (i <- 1 to 4) {
+        gameActor ! ClickGold
+      }
+      gameActor ! BuyEquipment("shovel") // Left gold is ~1.5 // GPC = 4 // GPS = 0
+      for (i <- 1 to 250) { // +250*4 = +1000
         gameActor ! ClickGold
       }
 
-      // Update ~1002+10~1012
-      expectNoMessage(1000.millis)
-      gameActor ! Update // + 10 from excavator // Gold ~1022
-      gs = expectMsgType[GameState](1000.millis)
-      gold = (Json.parse(gs.gameState) \ "gold").as[Double]
-
-      assert(gold >= 1000 && gold <= 1050) // Gold ~1022
-
       // Buy Excavator
-      gameActor ! BuyEquipment("mine") // - 1000 // Gold ~22
+      gameActor ! BuyEquipment("mine")
 
-      // Update // gold ~22
-      expectNoMessage(1000.millis) // +10 +100
-      gameActor ! Update  // ~22 + 110 ~132
+      // Update
+      expectNoMessage(1100.millis)
+      gameActor ! Update
       gs = expectMsgType[GameState](1000.millis)
       gold = (Json.parse(gs.gameState) \ "gold").as[Double]
+      equipm = (Json.parse(gs.gameState) \ "equipment" \ "mine" \ "numberOwned").as[Int]
 
-      assert(gold >= 22 && gold <= 250)
+      assert(gold > 100 && gold < 103)
+      assert(equipm == 1)
+
     }
   }
 
